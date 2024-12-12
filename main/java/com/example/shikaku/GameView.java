@@ -31,7 +31,7 @@ public class GameView {
     List<GameCell> gameCellsList = new ArrayList<>();
     int n;
     Generation gen;
-    Color[] colors = new Color[]{Color.ROYALBLUE, Color.YELLOW, Color.AQUAMARINE, Color.LIGHTCORAL,
+    public static final Color[] colors = new Color[]{Color.ROYALBLUE, Color.YELLOW, Color.AQUAMARINE, Color.LIGHTCORAL,
             Color.FUCHSIA, Color.RED, Color.FORESTGREEN, Color.BISQUE, Color.GOLD, Color.BROWN,
             Color.CRIMSON, Color.YELLOWGREEN, Color.DIMGREY, Color.PERU, Color.SADDLEBROWN, Color.PLUM,
             Color.POWDERBLUE, Color.MEDIUMVIOLETRED, Color.DARKVIOLET, Color.LIGHTSLATEGRAY, Color.DARKSALMON
@@ -115,8 +115,6 @@ public class GameView {
                             if(cellY > chosenAreaYMax)
                                 chosenAreaYMax = cellY;
                             gameCell.recNumber = counterRect;
-                        /*cell.setBackground(new Background(
-                                new BackgroundFill(Color.BLACK, CornerRadii.EMPTY, Insets.EMPTY)));*/
                         });
                 cell.setOnMouseDragReleased(
                         event -> {

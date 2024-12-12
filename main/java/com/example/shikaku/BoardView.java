@@ -22,7 +22,7 @@ public class BoardView {
         this.n = n;
         this.m = m;
         pane.setPrefColumns(n);
-        pane.setPrefTileWidth(CELL_WIDTH); //(400-20)/n
+        pane.setPrefTileWidth(CELL_WIDTH); 
         pane.setPrefTileHeight(CELL_WIDTH);
         pane.setMaxWidth(Region.USE_PREF_SIZE);
         setPaneElements();
@@ -48,6 +48,7 @@ public class BoardView {
         return labelPane;
     }
 
+    //теоретически тоже можно сделать вычислением если возсращать результат работы listNodes
     void createLabelPane(List<List<Integer>> result, TilePane labelPane, List<List<Integer>> numbersField){
         ObservableList<Node> listNodes;
         listNodes = labelPane.getChildren();
@@ -55,16 +56,11 @@ public class BoardView {
             Label view = new Label();
             view.setMinWidth(30);
             view.setMinHeight(30);
-            //view.setBackground(new Background(new BackgroundFill(Color.color(1,0,1).brighter(),
-            //        CornerRadii.EMPTY, Insets.EMPTY)));
-            //view.setStyle("-fx-background-color: light-blue");
-            //view.setTextFill(Color.color(1,1,0));
             if (numbersField.get(i/n).get(i%n) != 0){
                 int numInt = numbersField.get(i/n).get(i%n);
                 String numStr = Integer.toString(numInt);
                 view.setText(numStr);
                 view.setPadding(new Insets(0,0,0,9));
-                //view.setTextAlignment(TextAlignment.JUSTIFY);
             }
             else
                 view.setText("");
@@ -73,6 +69,7 @@ public class BoardView {
         paintLabels(result, listNodes);
     }
 
+    //можно сделать вычислением, если сделать кпз на listNodes
     void paintLabels(List<List<Integer>> result, ObservableList<Node> listNodes){
         Color[] colors = new Color[]{Color.ROYALBLUE, Color.YELLOW, Color.AQUAMARINE, Color.LIGHTCORAL,
                 Color.FUCHSIA, Color.RED, Color.FORESTGREEN, Color.BISQUE, Color.GOLD, Color.BROWN,
@@ -90,15 +87,12 @@ public class BoardView {
                 ((Label)listNodes.get(c)).setBackground(new Background
                         (new BackgroundFill(color,
                                 CornerRadii.EMPTY, Insets.EMPTY)));
-
-                //buffer.append(label.toString());
-                //buffer.append(' ');
             }
             i++;
-            // buffer.append('\n');
         }
     }
 
+    //вычисление
     List<List<Integer>> getBoard() throws NotPositiveNumber {
         List<List<Integer>> board = new ArrayList<>();
         List<Integer> tmp = new ArrayList<>();
@@ -126,5 +120,5 @@ public class BoardView {
     }
 }
 
-class NotPositiveNumber extends Exception{  // TODO: посмотреть как создавать исключения и переделать
+class NotPositiveNumber extends Exception{
 }

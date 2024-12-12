@@ -1,9 +1,13 @@
 package com.example.shikaku;
 
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+
+import static com.example.shikaku.Utils.addToListSafe;
+import static com.example.shikaku.Utils.removeFromListSafe;
 
 public class DLX {
     private static List<List<Integer>> result;
@@ -12,7 +16,15 @@ public class DLX {
         return result;
     }
 
-    public static final ColumnNode buildSparseMatrix(List<List<Integer>> matr,   //byte[][] input,
+    // стратифицированный дизайн - можно выделить создание buildCellNode и что-то еще такое в функцию класса CellNode
+    //добавление туда новой полезной функции
+    //также можно посмотреть какие есть еще такие операции
+    //это в презентацию добавить про стратификацию, что раньше функция была наполнена
+    // большим количеством деталей а теперь же - нет
+    //также можно сделать функции для классов нодов которые будут заменять указатели на новые значения
+    // и передавать им туда эти значения
+    //ВЫЧИСЛЕНИЕ!!
+    public static final ColumnNode buildSparseMatrix(List<List<Integer>> matr,
                                                      Integer[] labels ) { //
 
         // Make root node and column headers
@@ -72,6 +84,30 @@ public class DLX {
         return h;
     }
 
+    public static void solvePuzzle(GameView gameView, int n, Integer[] cols, List<CellNode> o) {
+        Matrix matrix = new Matrix(gameView.gen.field,n,n);
+        DLX.solve(DLX.buildSparseMatrix(matrix.createMatrix(), cols), 0, o);
+    }
+
+    private static void buildCellNode(ColumnNode currentCol){
+        CellNode obj = createCellNode(currentCol);
+        currentCol.U.D = obj;
+        currentCol.U = obj;
+        currentCol.size++;
+    }
+
+    //вычисление
+    private static CellNode createCellNode(ColumnNode currentCol) {
+        CellNode obj = new CellNode();
+        obj.U = currentCol.U;
+        obj.D = currentCol;
+        obj.L = obj;
+        obj.R = obj;
+        obj.C = currentCol;
+        return obj;
+    }
+
+    //вычисление
     private static boolean processResult(
             List<CellNode> o) {
         final List<List<Integer>> resultSet = new LinkedList<List<Integer>>();
@@ -126,7 +162,7 @@ public class DLX {
         cover(h, c);
         CellNode d = c.D;
         while ((!solutionFound) && (d != c)) {
-            grow(solving, k+1);
+            solving = grow(solving, k+1);
             //добавляем в рещение
             solving.set(k, d);
             CellNode j = d.R;
@@ -152,17 +188,24 @@ public class DLX {
         return solutionFound;
     }
 
-    private static void grow(List<CellNode> o, int k) {
-        if (o.size() < k) {
-            while (o.size() < k) {
-                o.add(null);
+    //сделала вычислением
+    // было - изменяет o сюда можно добавить метод КПЗ удалить элемент из списка
+    private static List<CellNode> grow(List<CellNode> o, int k) {
+        List<CellNode> newList = new ArrayList<>(List.copyOf(o));
+        if (newList.size() < k) {
+            while (newList.size() < k) {
+                //o.add(null);
+                newList = addToListSafe(newList, null);
             }
-        } else if (o.size() > k) {
-            while (o.size() > k) {
-                o.remove(o.size() - 1);
+        } else if (newList.size() > k) {
+            while (newList.size() > k) {
+                //o.remove(o.size() - 1);
+                newList = removeFromListSafe(newList,newList.size() - 1);
             }
         }
+        return newList;
     }
+
 
     static void  cover(ColumnNode h, ColumnNode columnObj) {
         columnObj.R.L = columnObj.L;

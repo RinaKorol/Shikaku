@@ -1,7 +1,5 @@
 package com.example.shikaku;
 
-import com.example.shikaku.Board;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -84,18 +82,18 @@ public class Backtracking {
 //
 //    }
 
-    public static boolean solve(Cell currNum, Board board){
+    public static boolean solve(Cell currNum, Matrix matrix){
         if(isSolved()){
             return processResult();
         }
         boolean solutionFound = false;
         Cell curr = currNum;
-        List<List<Integer>> currRectOptions = board.rectOptions(curr.num,curr.numX,curr.numY);  //все возможные расположения прямоугольников
+        List<List<Integer>> currRectOptions = matrix.rectOptions(curr.num,curr.numX,curr.numY);  //все возможные расположения прямоугольников
         if(solvingMatr.isEmpty()){  //если в списке ответов нет ничего, то просто добавить прямоугольник
             for (int i=0; i<currRectOptions.size();i++) {   //проходим по всем возможным прямоугольникам для текущего числа
                 if(!solutionFound) {
                     solvingMatr.add(currRectOptions.get(i));    //добавить в ответы
-                    solutionFound = solve(curr.next, board);    //рекурсивный вызов
+                    solutionFound = solve(curr.next, matrix);    //рекурсивный вызов
                     solvingMatr.remove(solvingMatr.size() - 1);
                 }
                 else return solutionFound;  //если найдено решение, то прекратить работу
@@ -106,7 +104,7 @@ public class Backtracking {
                 if(!solutionFound) {
                     if (isPossible(currRectOptions.get(i))) {
                         solvingMatr.add(currRectOptions.get(i));    //добавить в ответы
-                        solutionFound = solve(curr.next, board);    //рекурсивный вызов
+                        solutionFound = solve(curr.next, matrix);    //рекурсивный вызов
                         solvingMatr.remove(solvingMatr.size() - 1);
                     }
                 }
