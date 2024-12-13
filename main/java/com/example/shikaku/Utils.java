@@ -5,7 +5,7 @@ import java.util.List;
 
 public class Utils {
 
-    public static <T> List<T> addToListSafe(List<T> list, T el) {
+    public static <T> List<T> addToListElementSafe(List<T> list, T el) {
         List<T> newList = new ArrayList<>(List.copyOf(list));
         newList.add(el);
         return newList;

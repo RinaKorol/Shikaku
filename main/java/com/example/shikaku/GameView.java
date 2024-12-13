@@ -1,6 +1,7 @@
 package com.example.shikaku;
 
 import javafx.collections.ObservableList;
+import javafx.event.Event;
 import javafx.scene.Node;
 import javafx.scene.input.MouseDragEvent;
 import javafx.scene.layout.*;
@@ -23,7 +24,7 @@ public class GameView {
     Double chosenAreaYMin = Double.MAX_VALUE;
 
     //List<List<Integer>> inputMatr = new ArrayList<>();
-    List<CheckingRectangle> inputRectangles = new ArrayList<>();
+    List<RectangleOnField> inputRectangles = new ArrayList<>();
 
     Integer counterRect =0;
 
@@ -50,7 +51,7 @@ public class GameView {
 
     void mouse(MouseDragEvent event){
         event.consume();
-        CheckingRectangle r = new CheckingRectangle();
+        RectangleOnField r = new RectangleOnField();
         List<Integer> inputRect = Stream.generate(() -> 0)
                 .limit(n*n)
                 .collect(Collectors.toCollection(ArrayList::new));
@@ -85,8 +86,102 @@ public class GameView {
         chosenAreaYMin = Double.MAX_VALUE;
     }
 
-    void setPaneElements() {
+    private void mouseEnteredEvent(Event event, Rectangle cell, GameCell gameCell) {
+        {
+            event.consume();
+            cell.setFill(colors[colorsCounter]);
+            Double cellX = cell.getX();
+            if(cellX<chosenAreaXMin)
+                chosenAreaXMin = cellX;
+            if(cellX > chosenAreaXMax)
+                chosenAreaXMax = cellX;
+            Double cellY = cell.getY();
+            if(cellY<chosenAreaYMin)
+                chosenAreaYMin = cellY;
+            if(cellY > chosenAreaYMax)
+                chosenAreaYMax = cellY;
+            gameCell.recNumber = counterRect;
+        }
+    }
 
+    private void mouseDraggedEvent(Event event) {
+        {
+            event.consume();
+            RectangleOnField r = new RectangleOnField();
+            List<Integer> inputRect = Stream.generate(() -> 0)
+                    .limit(n*n)
+                    .collect(Collectors.toCollection(ArrayList::new));
+            r.inputRectangle = inputRect;
+            int num =0;
+            for(GameCell rectCell: gameCellsList){
+                double rectX = rectCell.rectangle.getX();
+                double rectY = rectCell.rectangle.getY();
+                if(rectX >= chosenAreaXMin && rectX <= chosenAreaXMax
+                        && rectY >= chosenAreaYMin && rectY <= chosenAreaYMax){
+                    rectCell.rectangle.setFill(colors[colorsCounter]);
+                    inputRect.set((int)(rectY*n+rectX), 1);
+                    String rectTextStr = rectCell.text.getText();
+                    if(!Objects.equals(rectTextStr, "")
+                    ){
+                        int sdh = Integer.parseInt(rectCell.text.getText());
+                        r.numCounter++;
+                        num = sdh;
+                        r.num=num;
+                    }
+                }
+            }
+            inputRectangles.add(r);
+            colorsCounter++;
+            if(colorsCounter==colors.length){
+                colorsCounter =0;
+            }
+            //inputMatr.add(inputRect);
+            chosenAreaXMax = -1.0;
+            chosenAreaXMin = Double.MAX_VALUE;
+            chosenAreaYMax = -1.0;
+            chosenAreaYMin = Double.MAX_VALUE;
+        }
+    }
+
+    private void mouseReleasedEvent(Event event) {
+        {
+            event.consume();
+            RectangleOnField r = new RectangleOnField();
+            List<Integer> inputRect = Stream.generate(() -> 0)
+                    .limit(n*n)
+                    .collect(Collectors.toCollection(ArrayList::new));
+            r.inputRectangle = inputRect;
+            int num =0;
+            for(GameCell rectCell: gameCellsList){
+                double rectX = rectCell.rectangle.getX();
+                double rectY = rectCell.rectangle.getY();
+                if(rectX >= chosenAreaXMin && rectX <= chosenAreaXMax
+                        && rectY >= chosenAreaYMin && rectY <= chosenAreaYMax){
+                    rectCell.rectangle.setFill(colors[colorsCounter]);
+                    inputRect.set((int)(rectY*n+rectX), 1);
+                    String rectTextStr = rectCell.text.getText();
+                    if(!Objects.equals(rectTextStr, "")
+                    ){
+                        int sdh = Integer.parseInt(rectCell.text.getText());
+                        r.numCounter++;
+                        num = sdh;
+                        r.num=num;
+                    }
+                }
+            }
+            inputRectangles.add(r);
+            colorsCounter++;
+            if(colorsCounter==colors.length){
+                colorsCounter =0;
+            }
+            chosenAreaXMax = -1.0;
+            chosenAreaXMin = Double.MAX_VALUE;
+            chosenAreaYMax = -1.0;
+            chosenAreaYMin = Double.MAX_VALUE;
+        }
+    }
+
+    void setPaneElements() {
         gen.generateField();
         List<List<Integer>> generatedNumbers = gen.getField();
         list = pane.getChildren();
@@ -99,123 +194,18 @@ public class GameView {
                 cell.setStroke(Color.DARKSALMON);
                 GameCell gameCell = new GameCell(cell,generatedNumbers.get(i).get(j));
                 cell.setOnMouseDragEntered(
-                        event -> {
-                            event.consume();
-                            //cell.setStroke(Color.BROWN);
-                            //cell.setFill(Color.DARKSALMON);
-                            cell.setFill(colors[colorsCounter]);
-                            Double cellX = cell.getX();
-                            if(cellX<chosenAreaXMin)
-                                chosenAreaXMin = cellX;
-                            if(cellX > chosenAreaXMax)
-                                chosenAreaXMax = cellX;
-                            Double cellY = cell.getY();
-                            if(cellY<chosenAreaYMin)
-                                chosenAreaYMin = cellY;
-                            if(cellY > chosenAreaYMax)
-                                chosenAreaYMax = cellY;
-                            gameCell.recNumber = counterRect;
-                        });
+                        event -> mouseEnteredEvent(event, cell, gameCell));
                 cell.setOnMouseDragReleased(
-                        event -> {
-                            event.consume();
-                            CheckingRectangle r = new CheckingRectangle();
-                            List<Integer> inputRect = Stream.generate(() -> 0)
-                                    .limit(n*n)
-                                    .collect(Collectors.toCollection(ArrayList::new));
-                            r.inputRectangle = inputRect;
-                            int num =0;
-                            for(GameCell rectCell: gameCellsList){
-                                double rectX = rectCell.rectangle.getX();
-                                double rectY = rectCell.rectangle.getY();
-                                if(rectX >= chosenAreaXMin && rectX <= chosenAreaXMax
-                                        && rectY >= chosenAreaYMin && rectY <= chosenAreaYMax){
-                                    rectCell.rectangle.setFill(colors[colorsCounter]);
-                                    inputRect.set((int)(rectY*n+rectX), 1);
-                                    String rectTextStr = rectCell.text.getText();
-                                    if(!Objects.equals(rectTextStr, "")
-                                    ){
-                                        int sdh = Integer.parseInt(rectCell.text.getText());
-                                        r.numCounter++;
-                                        num = sdh;
-                                        r.num=num;
-                                    }
-                                }
-                            }
-                            inputRectangles.add(r);
-                            colorsCounter++;
-                            if(colorsCounter==colors.length){
-                                colorsCounter =0;
-                            }
-                            //inputMatr.add(inputRect);
-                            chosenAreaXMax = -1.0;
-                            chosenAreaXMin = Double.MAX_VALUE;
-                            chosenAreaYMax = -1.0;
-                            chosenAreaYMin = Double.MAX_VALUE;
-                        }
+                        this::mouseDraggedEvent
                 );
-                gameCell.text.setOnMouseDragReleased(event -> {
-                    event.consume();
-                    CheckingRectangle r = new CheckingRectangle();
-                    List<Integer> inputRect = Stream.generate(() -> 0)
-                            .limit(n*n)
-                            .collect(Collectors.toCollection(ArrayList::new));
-                    r.inputRectangle = inputRect;
-                    int num =0;
-                    for(GameCell rectCell: gameCellsList){
-                        double rectX = rectCell.rectangle.getX();
-                        double rectY = rectCell.rectangle.getY();
-                        if(rectX >= chosenAreaXMin && rectX <= chosenAreaXMax
-                                && rectY >= chosenAreaYMin && rectY <= chosenAreaYMax){
-                            rectCell.rectangle.setFill(colors[colorsCounter]);
-                            inputRect.set((int)(rectY*n+rectX), 1);
-                            String rectTextStr = rectCell.text.getText();
-                            if(!Objects.equals(rectTextStr, "")
-                            ){
-                                int sdh = Integer.parseInt(rectCell.text.getText());
-                                r.numCounter++;
-                                num = sdh;
-                                r.num=num;
-                            }
-                        }
-                    }
-                    inputRectangles.add(r);
-                    colorsCounter++;
-                    if(colorsCounter==colors.length){
-                        colorsCounter =0;
-                    }
-                    //inputMatr.add(inputRect);
-                    chosenAreaXMax = -1.0;
-                    chosenAreaXMin = Double.MAX_VALUE;
-                    chosenAreaYMax = -1.0;
-                    chosenAreaYMin = Double.MAX_VALUE;
-                });
-                //cell.setPrefWidth(CELL_WIDTH-10);
+                gameCell.text.setOnMouseDragReleased(this::mouseReleasedEvent);
                 cell.setWidth(CELL_WIDTH);
                 cell.setHeight(CELL_WIDTH);
-
-//                if(generatedNumbers.get(i).str.get(j)!=0){
-//                    Text text = new Text(generatedNumbers.get(i).str.get(j).toString());
-//                    StackPane stackPane = new StackPane(cell, text);
-//                    list.add(stackPane);
-//                }
-                //else
-                //list.add(cell);
                 list.add(gameCell.stackPane);
                 gameCellsList.add(gameCell);
             }
         }
     }
-
-//    public void printInputMatr(){
-//        System.out.println("Input matr:");
-//        for(List<Integer> i: inputMatr){
-//            for(int j=0;j<n*n;j++){
-//                System.out.print(i.get(j)+" ");
-//            }
-//            System.out.println();
-//        }
-//    }
 
     Node getPlayPane(){
         return pane;

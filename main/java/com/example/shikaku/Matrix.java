@@ -42,7 +42,7 @@ public class Matrix {
     //массив списков, колонок n*m строк - сколько угодно - добавляются динамически
     //пока что действие но если изменить возвращаемое значение можно сделать вычислением
     public List<List<Integer>> createMatrix(){
-        matr = new ArrayList<>();
+        List<List<Integer>> matr = new ArrayList<>();
         int num;
         int numX, numY;
         for(int i=0;i<n;i++){

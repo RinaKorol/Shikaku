@@ -12,6 +12,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BoardView {
+
+    private static final  Color[] colors = new Color[]{Color.ROYALBLUE, Color.YELLOW, Color.AQUAMARINE, Color.LIGHTCORAL,
+            Color.FUCHSIA, Color.RED, Color.FORESTGREEN, Color.BISQUE, Color.GOLD, Color.BROWN,
+            Color.CRIMSON, Color.YELLOWGREEN, Color.DIMGREY, Color.PERU, Color.SADDLEBROWN, Color.PLUM,
+            Color.POWDERBLUE, Color.MEDIUMVIOLETRED, Color.DARKVIOLET, Color.LIGHTSLATEGRAY
+    };
     private static final int CELL_WIDTH = 35;
     TilePane pane = new TilePane();
 

@@ -20,7 +20,7 @@ public class Generation {
         for (int i = 0; i < n * n; i++) {
             str.add(1);
         }
-        first.str = str;
+        first.inputRectangle = str;
         first.numCol = n;
         first.numStr = n;
         fieldMatr.add(first);
@@ -50,8 +50,8 @@ public class Generation {
         for (RectangleOnField rectangleOnField : fieldMatr) {
             space = rectangleOnField.numCol * rectangleOnField.numStr;
             place = rand.nextInt(space);
-            for (int j = 0; j < rectangleOnField.str.size(); j++) {
-                if (rectangleOnField.str.get(j) == 1)
+            for (int j = 0; j < rectangleOnField.inputRectangle.size(); j++) {
+                if (rectangleOnField.inputRectangle.get(j) == 1)
                     counter++;
                 if (counter == place) {
                     field.get(j / n).set(j % n, space);
@@ -72,28 +72,12 @@ public class Generation {
         }
         System.out.println("Generation fieldMatr");
         for (RectangleOnField rectangleOnField : fieldMatr) {
-            for (int j = 0; j < rectangleOnField.str.size(); j++) {
-                System.out.print(rectangleOnField.str.get(j) + " ");
+            for (int j = 0; j < rectangleOnField.inputRectangle.size(); j++) {
+                System.out.print(rectangleOnField.inputRectangle.get(j) + " ");
             }
             System.out.println();
         }
     }
-
-    //вычисление
-    //выселить в ректангл тк находит колонку прямоугольника
-    private int chooseCol(RectangleOnField currRec) {
-        int chosenCol = currRec.str.size();
-        for (int i = 0; i < n * n; i++) { //нахожу первую 1 в строке которую делю, чтобы определить в каком столбце
-            //начинается прямоугольник
-            if (currRec.str.get(i) == 1) {
-                chosenCol = i % n;
-                break;
-            }
-        }
-        return chosenCol;
-    }
-
-
 
     //действие
     private RectangleOnField[] devisionCols(RectangleOnField currRec, int iter) {
@@ -109,40 +93,23 @@ public class Generation {
 
         RectangleOnField first = createNewRect(currRec.numStr, devRes1); //создаю два прямоугольника
         RectangleOnField second = createNewRect(currRec.numStr, devRes2);
-        int first1 = currRec.str.size();
         List<Integer> str2 = new ArrayList<>();
-        for (int i = 0; i < first1; i++) {
-            str2.add(currRec.str.get(i));
-        }
-        first1 = chooseCol(currRec);
-        Object[] recCol = cutRectByCol(first1, devRes1, currRec.str, first, str2);
+        str2 = Utils.addToList(str2, currRec.inputRectangle);
+        Object[] recCol = cutRectByCol(devRes1, currRec, first, str2);
         first = (RectangleOnField) recCol[0];
-        second.str = (List<Integer>) recCol[1];
+        second.inputRectangle = (List<Integer>) recCol[1];
         return new RectangleOnField[]{first, second};
     }
 
-    //вычисление
-    private int chooseStr(RectangleOnField currRec) {
-        int chosenStr = currRec.str.size();
-        //может вынести этот метод в RectangleOnField?
-        for (int i = 0; i < n * n; i++) { //нахожу первую 1 в строке которую делю, чтобы определить в какой строке
-            //начинается прямоугольник
-            if (currRec.str.get(i) == 1) {
-                chosenStr = i / n;
-                break;
-            }
-        }
-        return chosenStr;
-    }
-
     //теперь вычисление
-    private Object[] cutRectByCol(int chosenCol, int devRes, List<Integer> currRecStr, RectangleOnField rect, List<Integer> str2) {
+    private Object[] cutRectByCol(int devRes, RectangleOnField currRec, RectangleOnField rect, List<Integer> str2) {
         RectangleOnField newRect = rect.clone();
         List<Integer> str = new ArrayList<>(List.copyOf(str2));
+        int chosenCol = currRec.chooseCol();
         for (int i = 0; i < n * n; i++) {     //прохожусь по всем столбцам и забираю значения из нужных
             if (i % n == chosenCol) {
                 for (int j = 0; j < devRes; j++) {
-                    newRect.str.set(i + j, currRecStr.get(i));    //беру все столбцы которые мне нужны
+                    newRect.inputRectangle.set(i + j, currRec.inputRectangle.get(i));    //беру все столбцы которые мне нужны
                     str.set(i + j, 0);
                 }
             }
@@ -151,15 +118,14 @@ public class Generation {
     }
 
     //вычисление
-    private Object[] cutRectByStr(int chosenStr, int devRes, List<Integer> currRecStr, RectangleOnField rect, List<Integer> str2) { //RectangleOnField rect2
+    private Object[] cutRectByStr(int devRes, RectangleOnField currRec, RectangleOnField rect, List<Integer> str2) { //RectangleOnField rect2
         RectangleOnField newRect = rect.clone();
-        //RectangleOnField newRect2 = rect2.clone();
+        int chosenStr = currRec.chooseStr();
         List<Integer> str = new ArrayList<>(List.copyOf(str2));
         for (int i = 0; i < n * n; i++) {   //прохожусь по всем строкам и забираю значения из нужных
             if (i / n == chosenStr) {
                 for (int j = 0; j < devRes; j++) {
-                    //вынести в ректангл?
-                    newRect.str.set(i + j * n, currRecStr.get(i));
+                    newRect.inputRectangle.set(i + j * n, currRec.inputRectangle.get(i));
                     str.set(i + j * n, 0);
                 }
             }
@@ -175,20 +141,11 @@ public class Generation {
         devRes2 = currRec.numStr - devRes1;
         RectangleOnField first = createNewRect(devRes1, currRec.numCol);
         RectangleOnField second = createNewRect(devRes2, currRec.numCol);
-        int first1 = currRec.str.size();
-        //second.copyRectStr(first1, currRec);
-        //вынести вохможно в rectangle
         List<Integer> str2 = new ArrayList<>();
-        for (int i = 0; i < first1; i++) {
-            str2.add(currRec.str.get(i));
-        }
-        //second.str = str2;
-        first1 = chooseStr(currRec);
-        //изменить аргументы чтобы передавались два прямоугольника
-        Object[] recStr = cutRectByStr(first1, devRes1, currRec.str, first, str2);
+        str2 = Utils.addToList(str2, currRec.inputRectangle);
+        Object[] recStr = cutRectByStr(devRes1, currRec, first, str2);
         first = (RectangleOnField) recStr[0];
-        //second = (RectangleOnField) recStr[0];
-        second.str = (List<Integer>) recStr[1];
+        second.inputRectangle = (List<Integer>) recStr[1];
         return new RectangleOnField[]{first, second};
     }
 
@@ -205,19 +162,20 @@ public class Generation {
 
     //сделать чтобы оно не изменяло глобальную переменную, а принимало fieldMatr как аргумент и после этого
     //использовать КПЗ и использовать как пример для КПЗ
-    private void divide(RectangleOnField currRec, int colOrStr) {
+    private List<RectangleOnField> divide(RectangleOnField currRec, int colOrStr, List<RectangleOnField> fieldMatr, int iter ) {
+        List<RectangleOnField> fieldMatrCopy = new ArrayList<>(List.copyOf(fieldMatr));
         if (currRec.numCol > 1 && currRec.numStr > 1) {
-            RectangleOnField[] res = null;
+            RectangleOnField[] res;
             if (colOrStr == 0) {
                 res = devisionCols(currRec, iter);
             } else {
                 res = devisionStr(currRec);
             }
-            //devisionCols(currRec, devRes1, first, second);
-            fieldMatr.remove(currRec);  //удаляю старый и вношу два новых прямоугольника
-            fieldMatr.add(res[0]);
-            fieldMatr.add(res[1]);
+            fieldMatrCopy.remove(currRec);  //удаляю старый и вношу два новых прямоугольника
+            fieldMatrCopy.add(res[0]);
+            fieldMatrCopy.add(res[1]);
         }
+        return fieldMatrCopy;
     }
 
 
@@ -233,16 +191,11 @@ public class Generation {
         }
     }
 
-    //изменяется глобальная переменная iter
+    //изменяется глобальная переменная iter  fieldMatr
     private void divideRect(RectangleOnField currRec, int colOrStr) {
-        while (iter < n * n / 3 +1) {   //делю пока не достигнуто нужное количество прямоугольников
+        while (iter < n * n / 2 +1) {   //делю пока не достигнуто нужное количество прямоугольников
             if (currRec.numStr * currRec.numCol > 3) {
-                divide(currRec, colOrStr);
-//                if (colOrStr == 0) {
-//                    divideColumns(currRec);
-//                } else {
-//                    divideStrings(currRec);
-//                }
+                fieldMatr = divide(currRec, colOrStr, fieldMatr, iter);
             }
             iter++;
             generateField();
@@ -264,24 +217,36 @@ public class Generation {
 
     //подсчет единиц, //действие, тк меняется аргумент, но можно сделать вычислением
     //в идеале сделать ones через новую но не разобралась как вернуть пару значений сразу
-    private static int countOnes(int[] ones, CheckingRectangle rect) {
+    private static int countOnes(RectangleOnField rect) {
         int counter = 0;
         for (int i = 0; i < rect.inputRectangle.size(); ++i) {
             if (rect.inputRectangle.get(i) == 1) {
-                ones[i]++;
+                //ones[i]++;
                 counter++;
             }
         }
         return counter;
     }
 
+    private static int[] fillOnesArray(List<RectangleOnField> listRectangles, int size){
+        int[] ones = new int[size];
+        for (RectangleOnField rect : listRectangles) {
+            for (int i = 0; i < size; ++i) {
+                if (rect.inputRectangle.get(i) == 1) {
+                    ones[i]++;
+                }
+            }
+        }
+        return ones;
+    }
+
     //проверка каждого прямоугольника
     //добавить копирование isSolved
     //действие, тк меняется аргумент, но можно сделать вычислением
-    private static boolean checkRectangles(List<CheckingRectangle> listRectangles, int[] ones) {
+    private static boolean checkRectangles(List<RectangleOnField> listRectangles) {
         int counter;
-        for (CheckingRectangle checkingRectangle : listRectangles) {
-            counter = countOnes(ones, checkingRectangle);
+        for (RectangleOnField checkingRectangle : listRectangles) {
+            counter = countOnes(checkingRectangle);
             if (counter != checkingRectangle.num) {
                 return false;
             }
@@ -291,8 +256,8 @@ public class Generation {
 
     //добавить копирование isSolved
     //действие, тк меняется аргумент, но можно сделать вычислением
-    private static boolean isRectChosenOnce(List<CheckingRectangle> listRectangles) {
-        for (CheckingRectangle checkingRectangle : listRectangles) {
+    private static boolean isRectChosenOnce(List<RectangleOnField> listRectangles) {
+        for (RectangleOnField checkingRectangle : listRectangles) {
             if (checkingRectangle.numCounter != 1) {
                 return false;
             }
@@ -300,7 +265,6 @@ public class Generation {
         return true;
     }
 
-    //действие, тк меняется аргумент, но можно сделать вычислением
     private static boolean checkAllOnes(int[] ones, int size) {
         for (int i = 0; i < size; i++) {
             if (ones[i] != 1) {
@@ -310,10 +274,11 @@ public class Generation {
         return true;
     }
 
-    public static boolean isSolved(List<CheckingRectangle> r) {
+    public static boolean isSolved(List<RectangleOnField> r) {
         if (!r.isEmpty()) {
-            int[] ones = new int[r.get(0).inputRectangle.size()];
-              return isRectChosenOnce(r) && checkRectangles(r,ones) && checkAllOnes(ones,r.get(0).inputRectangle.size());
+            int[] ones = fillOnesArray(r, r.get(0).inputRectangle.size());
+            //new int[r.get(0).inputRectangle.size()];
+              return isRectChosenOnce(r) && checkRectangles(r) && checkAllOnes(ones,r.get(0).inputRectangle.size());
         }
         return false;
     }
@@ -323,32 +288,62 @@ public class Generation {
 class RectangleOnField implements Cloneable {
     int numCol;
     int numStr;
-    List<Integer> str= new ArrayList<>();
+    List<Integer> inputRectangle = new ArrayList<>();
+    int numCounter = 0;
+    int num = 0;
 
     //вычисление
     public static RectangleOnField createNewRect(int numStr, int numCol) {
         RectangleOnField newRect = new RectangleOnField();
         newRect.numStr = numStr;
         newRect.numCol = numCol;
-        newRect.str = Stream.generate(() -> 0)
-                .limit(Generation.n * Generation.n)
+        newRect.inputRectangle = Stream.generate(() -> 0)
+                .limit((long) Generation.n * Generation.n)
                 .collect(Collectors.toCollection(ArrayList::new));
         return newRect;
+    }
+
+    //вычисление
+    //выселить в ректангл тк находит колонку прямоугольника
+    public int chooseCol() {
+        int chosenCol = inputRectangle.size();
+        for (int i = 0; i < Generation.n * Generation.n; i++) { //нахожу первую 1 в строке которую делю, чтобы определить в каком столбце
+            //начинается прямоугольник
+            if (inputRectangle.get(i) == 1) {
+                chosenCol = i % Generation.n;
+                break;
+            }
+        }
+        return chosenCol;
+    }
+
+    //вычисление
+    public int chooseStr() {
+        int chosenStr = inputRectangle.size();
+        //может вынести этот метод в RectangleOnField?
+        for (int i = 0; i < Generation.n * Generation.n; i++) { //нахожу первую 1 в строке которую делю, чтобы определить в какой строке
+            //начинается прямоугольник
+            if (inputRectangle.get(i) == 1) {
+                chosenStr = i / Generation.n;
+                break;
+            }
+        }
+        return chosenStr;
     }
 
     public void copyRectStr(int ind, RectangleOnField currRec) {
         List<Integer> str2 = new ArrayList<>();
         for (int i = 0; i < ind; i++) {
-            str2.add(currRec.str.get(i));
+            str2.add(currRec.inputRectangle.get(i));
         }
-        this.str = str2;
+        this.inputRectangle = str2;
     }
 
     @Override
     public RectangleOnField clone() {
         try {
             RectangleOnField clone = (RectangleOnField) super.clone();
-            clone.str = this.str;
+            clone.inputRectangle = this.inputRectangle;
             // TODO: copy mutable state here, so the clone can't change the internals of the original
             return clone;
         } catch (CloneNotSupportedException e) {

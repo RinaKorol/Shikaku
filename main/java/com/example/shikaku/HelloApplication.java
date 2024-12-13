@@ -151,8 +151,8 @@ public class HelloApplication extends Application {
         try {
             Matrix matrix = new Matrix(boardView.getBoard(), n, m);
             //if(board.createMatrix()) {
-            matrix.createMatrix();
-                DLX.solve(DLX.buildSparseMatrix(matrix.getMatr(), cols), 0, o);
+            //matrix.createMatrix();
+                DLX.solve(DLX.buildSparseMatrix(matrix.createMatrix(), cols), 0, o);
                 HBox root2 = new HBox();
                 Node DLXResultPane = boardView.getLabelPane(DLX.getResult(), boardView.getBoard());
                 root2.getChildren().addAll(DLXResultPane);

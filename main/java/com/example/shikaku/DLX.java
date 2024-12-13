@@ -6,7 +6,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import static com.example.shikaku.Utils.addToListSafe;
+import static com.example.shikaku.Utils.addToListElementSafe;
 import static com.example.shikaku.Utils.removeFromListSafe;
 
 public class DLX {
@@ -84,30 +84,13 @@ public class DLX {
         return h;
     }
 
-    public static void solvePuzzle(GameView gameView, int n, Integer[] cols, List<CellNode> o) {
+    public static void solvePuzzle(GameView gameView, int n, Integer[] cols, List<CellNode> solvingList) {
         Matrix matrix = new Matrix(gameView.gen.field,n,n);
-        DLX.solve(DLX.buildSparseMatrix(matrix.createMatrix(), cols), 0, o);
+        DLX.solve(DLX.buildSparseMatrix(matrix.createMatrix(), cols), 0, solvingList);
     }
 
-    private static void buildCellNode(ColumnNode currentCol){
-        CellNode obj = createCellNode(currentCol);
-        currentCol.U.D = obj;
-        currentCol.U = obj;
-        currentCol.size++;
-    }
-
-    //вычисление
-    private static CellNode createCellNode(ColumnNode currentCol) {
-        CellNode obj = new CellNode();
-        obj.U = currentCol.U;
-        obj.D = currentCol;
-        obj.L = obj;
-        obj.R = obj;
-        obj.C = currentCol;
-        return obj;
-    }
-
-    //вычисление
+    //вычисление было бы если бы не глобальная переменная, но думаю если убрать её станет хуже
+    //сейчас получить решение можно обратившись к переменной класса
     private static boolean processResult(
             List<CellNode> o) {
         final List<List<Integer>> resultSet = new LinkedList<List<Integer>>();
@@ -122,8 +105,6 @@ public class DLX {
             resultSet.add(resultRow);
         }
         result = printResult(resultSet);
-        //final DLXResult result = new DLXResult(resultSet);
-        //return processor.processResult(result);
         return true;
     }
 
@@ -159,7 +140,7 @@ public class DLX {
 
         boolean solutionFound = false;
         //покрываем выбранный столбец
-        cover(h, c);
+        cover(c);
         CellNode d = c.D;
         while ((!solutionFound) && (d != c)) {
             solving = grow(solving, k+1);
@@ -168,7 +149,7 @@ public class DLX {
             CellNode j = d.R;
             //покрываем остальные нужные столбцы
             while (j != d) {
-                cover(h, (ColumnNode)j.C);
+                cover((ColumnNode)j.C);
                 j = j.R;
             }
             //рекурсия
@@ -195,7 +176,7 @@ public class DLX {
         if (newList.size() < k) {
             while (newList.size() < k) {
                 //o.add(null);
-                newList = addToListSafe(newList, null);
+                newList = addToListElementSafe(newList, null);
             }
         } else if (newList.size() > k) {
             while (newList.size() > k) {
@@ -207,7 +188,7 @@ public class DLX {
     }
 
 
-    static void  cover(ColumnNode h, ColumnNode columnObj) {
+    static void cover(ColumnNode columnObj) {
         columnObj.R.L = columnObj.L;
         columnObj.L.R = columnObj.R;
         CellNode i = columnObj.D;
@@ -251,12 +232,54 @@ public class DLX {
 
 class CellNode {
     public CellNode L, R, U, D, C;
+
+    public CellNode(){}
+
+    public CellNode(CellNode L, CellNode R, CellNode U, CellNode D, CellNode C) {
+        this.U = U;
+        this.D = D;
+        this.L = L;
+        this.R = R;
+        this.C = C;
+    }
+
+    private static void buildCellNode(ColumnNode currentCol){
+        CellNode obj = createCellNode(currentCol);
+        currentCol.U.D = obj;
+        currentCol.U = obj;
+        currentCol.size++;
+    }
+
+    //вычисление
+    private static CellNode createCellNode(ColumnNode currentCol) {
+        CellNode obj = new CellNode();
+        obj.U = currentCol.U;
+        obj.D = currentCol;
+        obj.L = obj;
+        obj.R = obj;
+        obj.C = currentCol;
+        return obj;
+    }
 }
 
-class ColumnNode extends CellNode {
+class ColumnNode extends CellNode implements Cloneable{
 
     public int size = 0;
     public Integer col =0;
 
-
+    @Override
+    public ColumnNode clone() {
+        try {
+            ColumnNode clone = (ColumnNode) super.clone();
+            clone.C = this.C;
+            clone.L = this.L;
+            clone.R = this.R;
+            clone.U = this.U;
+            clone.D = this.D;
+            // TODO: copy mutable state here, so the clone can't change the internals of the original
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
+    }
 }
