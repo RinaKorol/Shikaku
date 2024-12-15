@@ -4,6 +4,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.example.shikaku.Utils.createFilledList;
+import static com.example.shikaku.Utils.setNum;
+
 public class Matrix {
     List<List<Integer>> field;
     List<List<Integer>> matr;
@@ -72,9 +75,7 @@ public class Matrix {
         List<List<Integer>> oneRectMatr = new ArrayList<>();
         int recHight, recWidth;
         boolean isNumberMarked = false;
-        List<Integer> matrStr = Stream.generate(() -> 0)
-                .limit(n*m)
-                .collect(Collectors.toCollection(ArrayList::new));
+        List<Integer> matrStr = createFilledList(setNum.apply(0),n);;
         Boolean flag = false;
         TreeSet<Integer> devisors;
 
@@ -111,9 +112,7 @@ public class Matrix {
                         isNumberMarked=true;
                     }
                 }
-                matrStr = Stream.generate(() -> 0)
-                        .limit(n*m)
-                        .collect(Collectors.toCollection(ArrayList::new));
+                matrStr = createFilledList(setNum.apply(0),n);;
                 flag = false;
             }
         }

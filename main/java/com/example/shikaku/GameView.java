@@ -15,6 +15,9 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.example.shikaku.Utils.createFilledList;
+import static com.example.shikaku.Utils.setNum;
+
 public class GameView {
     private static final int CELL_WIDTH = 35; //15
     TilePane pane = new TilePane();
@@ -52,9 +55,7 @@ public class GameView {
     void mouse(MouseDragEvent event){
         event.consume();
         RectangleOnField r = new RectangleOnField();
-        List<Integer> inputRect = Stream.generate(() -> 0)
-                .limit(n*n)
-                .collect(Collectors.toCollection(ArrayList::new));
+        List<Integer> inputRect = createFilledList(setNum.apply(0),n);
         r.inputRectangle = inputRect;
         int num =0;
         for(GameCell rectCell: gameCellsList){
@@ -108,9 +109,7 @@ public class GameView {
         {
             event.consume();
             RectangleOnField r = new RectangleOnField();
-            List<Integer> inputRect = Stream.generate(() -> 0)
-                    .limit(n*n)
-                    .collect(Collectors.toCollection(ArrayList::new));
+            List<Integer> inputRect = createFilledList(setNum.apply(0),n);;
             r.inputRectangle = inputRect;
             int num =0;
             for(GameCell rectCell: gameCellsList){
@@ -147,9 +146,7 @@ public class GameView {
         {
             event.consume();
             RectangleOnField r = new RectangleOnField();
-            List<Integer> inputRect = Stream.generate(() -> 0)
-                    .limit(n*n)
-                    .collect(Collectors.toCollection(ArrayList::new));
+            List<Integer> inputRect = createFilledList(setNum.apply(0),n);;
             r.inputRectangle = inputRect;
             int num =0;
             for(GameCell rectCell: gameCellsList){

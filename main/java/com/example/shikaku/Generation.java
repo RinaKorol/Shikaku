@@ -1,10 +1,13 @@
 package com.example.shikaku;
 
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.example.shikaku.RectangleOnField.createNewRect;
+import static com.example.shikaku.Utils.createFilledList;
+import static com.example.shikaku.Utils.setNum;
 
 public class Generation {
     public static int n = 0;
@@ -16,11 +19,7 @@ public class Generation {
     Generation(int n) {
         this.n = n;
         RectangleOnField first = new RectangleOnField();
-        List<Integer> str = new ArrayList<>();
-        for (int i = 0; i < n * n; i++) {
-            str.add(1);
-        }
-        first.inputRectangle = str;
+        first.inputRectangle = createFilledList(setNum.apply(1),n);
         first.numCol = n;
         first.numStr = n;
         fieldMatr.add(first);
@@ -95,9 +94,35 @@ public class Generation {
         RectangleOnField second = createNewRect(currRec.numStr, devRes2);
         List<Integer> str2 = new ArrayList<>();
         str2 = Utils.addToList(str2, currRec.inputRectangle);
-        Object[] recCol = cutRectByCol(devRes1, currRec, first, str2);
+        Object[] recCol = cutRect(forCol, devRes1, currRec, first, str2, 1);
         first = (RectangleOnField) recCol[0];
         second.inputRectangle = (List<Integer>) recCol[1];
+        return new RectangleOnField[]{first, second};
+    }
+
+    private RectangleOnField[] division(RectangleOnField currRec, int colOrStr) {
+        int devRes1, devRes2;
+        RectangleOnField first; //создаю два прямоугольника
+        RectangleOnField second;
+        List<Integer> str2 = new ArrayList<>();
+        str2 = Utils.addToList(str2, currRec.inputRectangle);
+        Object[] res;
+        if (colOrStr == 0) {
+            devRes1 = currRec.numCol / 2;
+            devRes2 = currRec.numCol - devRes1;
+            first = createNewRect(currRec.numStr, devRes1); //создаю два прямоугольника
+            second = createNewRect(currRec.numStr, devRes2);
+            res = cutRectByCol(devRes1, currRec, first, str2);
+        }
+        else {
+            devRes1 = currRec.numStr / 2;
+            devRes2 = currRec.numStr - devRes1;
+            first = createNewRect(devRes1, currRec.numCol);
+            second = createNewRect(devRes2, currRec.numCol);
+            res = cutRect(forStr, devRes1, currRec, first, str2, n);
+        }
+        first = (RectangleOnField) res[0];
+        second.inputRectangle = (List<Integer>) res[1];
         return new RectangleOnField[]{first, second};
     }
 
@@ -117,11 +142,31 @@ public class Generation {
         return new Object[]{newRect, str};
     }
 
+    BiFunction<Integer, RectangleOnField, Boolean> forCol = (num, rec) -> Objects.equals(num%n, rec.chooseCol());
+    BiFunction<Integer, RectangleOnField, Boolean> forStr = (num, rec) -> Objects.equals(num/n, rec.chooseStr());
+    private Object[] cutRect(
+            BiFunction<Integer, RectangleOnField, Boolean> func,
+            int devRes,
+            RectangleOnField currRec,
+            RectangleOnField rect,
+            List<Integer> str2,  int t) {
+        RectangleOnField newRect = rect.clone();
+        List<Integer> str = new ArrayList<>(List.copyOf(str2));
+        for (int i = 0; i < n * n; i++) {     //прохожусь по всем столбцам и забираю значения из нужных
+            if (func.apply(i,currRec)) {
+                for (int j = 0; j < devRes; j++) {
+                    newRect.inputRectangle.set(i + j * t, currRec.inputRectangle.get(i));    //беру все столбцы которые мне нужны
+                    str.set(i + j * t, 0);
+                }
+            }
+        }
+        return new Object[]{newRect, str};
+    }
     //вычисление
     private Object[] cutRectByStr(int devRes, RectangleOnField currRec, RectangleOnField rect, List<Integer> str2) { //RectangleOnField rect2
         RectangleOnField newRect = rect.clone();
-        int chosenStr = currRec.chooseStr();
         List<Integer> str = new ArrayList<>(List.copyOf(str2));
+        int chosenStr = currRec.chooseStr();
         for (int i = 0; i < n * n; i++) {   //прохожусь по всем строкам и забираю значения из нужных
             if (i / n == chosenStr) {
                 for (int j = 0; j < devRes; j++) {
@@ -139,24 +184,14 @@ public class Generation {
         int devRes1, devRes2;
         devRes1 = currRec.numStr / 2;
         devRes2 = currRec.numStr - devRes1;
-        RectangleOnField first = createNewRect(devRes1, currRec.numCol);
-        RectangleOnField second = createNewRect(devRes2, currRec.numCol);
         List<Integer> str2 = new ArrayList<>();
         str2 = Utils.addToList(str2, currRec.inputRectangle);
-        Object[] recStr = cutRectByStr(devRes1, currRec, first, str2);
+        RectangleOnField first = createNewRect(devRes1, currRec.numCol);
+        RectangleOnField second = createNewRect(devRes2, currRec.numCol);
+        Object[] recStr = cutRect(forStr, devRes1, currRec, first, str2, n);
         first = (RectangleOnField) recStr[0];
         second.inputRectangle = (List<Integer>) recStr[1];
         return new RectangleOnField[]{first, second};
-    }
-
-    //действие
-    private void divideColumns(RectangleOnField currRec) {
-        if (currRec.numCol > 1) {
-            RectangleOnField[] res = devisionCols(currRec, iter);
-            fieldMatr.remove(currRec);  //удаляю старый и вношу два новых прямоугольника
-            fieldMatr.add(res[0]);
-            fieldMatr.add(res[1]);
-        }
     }
 
 
@@ -192,9 +227,11 @@ public class Generation {
     }
 
     //изменяется глобальная переменная iter  fieldMatr
-    private void divideRect(RectangleOnField currRec, int colOrStr) {
+    private void divideField(RectangleOnField currRec) {
+        Random rand = new Random();
         while (iter < n * n / 2 +1) {   //делю пока не достигнуто нужное количество прямоугольников
             if (currRec.numStr * currRec.numCol > 3) {
+                int colOrStr = rand.nextInt(2);//0 столбец, 1 строка
                 fieldMatr = divide(currRec, colOrStr, fieldMatr, iter);
             }
             iter++;
@@ -209,30 +246,22 @@ public class Generation {
         if (iter < 3)   //первые 3 итерации делится самый большой прямоугольник
             chosenStr = 0;
 
-        int colOrStr = rand.nextInt(2);//0 столбец, 1 строка
         RectangleOnField currRec = fieldMatr.get(chosenStr);
 
-        divideRect(currRec, colOrStr);
+        divideField(currRec);
     }
 
     //подсчет единиц, //действие, тк меняется аргумент, но можно сделать вычислением
     //в идеале сделать ones через новую но не разобралась как вернуть пару значений сразу
     private static int countOnes(RectangleOnField rect) {
-        int counter = 0;
-        for (int i = 0; i < rect.inputRectangle.size(); ++i) {
-            if (rect.inputRectangle.get(i) == 1) {
-                //ones[i]++;
-                counter++;
-            }
-        }
-        return counter;
+        return (int) rect.inputRectangle.stream().filter(el -> el==1).count();
     }
 
     private static int[] fillOnesArray(List<RectangleOnField> listRectangles, int size){
         int[] ones = new int[size];
-        for (RectangleOnField rect : listRectangles) {
+        for (RectangleOnField rect : listRectangles) { //map?
             for (int i = 0; i < size; ++i) {
-                if (rect.inputRectangle.get(i) == 1) {
+                if (rect.inputRectangle.get(i) == 1) { //filter reduse
                     ones[i]++;
                 }
             }
@@ -244,34 +273,17 @@ public class Generation {
     //добавить копирование isSolved
     //действие, тк меняется аргумент, но можно сделать вычислением
     private static boolean checkRectangles(List<RectangleOnField> listRectangles) {
-        int counter;
-        for (RectangleOnField checkingRectangle : listRectangles) {
-            counter = countOnes(checkingRectangle);
-            if (counter != checkingRectangle.num) {
-                return false;
-            }
-        }
-        return true;
+        return listRectangles.stream().allMatch(el -> el.num == countOnes(el));
     }
 
     //добавить копирование isSolved
     //действие, тк меняется аргумент, но можно сделать вычислением
     private static boolean isRectChosenOnce(List<RectangleOnField> listRectangles) {
-        for (RectangleOnField checkingRectangle : listRectangles) {
-            if (checkingRectangle.numCounter != 1) {
-                return false;
-            }
-        }
-        return true;
+        return listRectangles.stream().allMatch(el -> el.numCounter == 1);
     }
 
     private static boolean checkAllOnes(int[] ones, int size) {
-        for (int i = 0; i < size; i++) {
-            if (ones[i] != 1) {
-                return false;
-            }
-        }
-        return true;
+        return Arrays.stream(ones).allMatch(el -> el == 1);
     }
 
     public static boolean isSolved(List<RectangleOnField> r) {

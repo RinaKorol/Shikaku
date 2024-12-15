@@ -2,6 +2,11 @@ package com.example.shikaku;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Utils {
 
@@ -17,6 +22,15 @@ public class Utils {
         return newList;
     }
 
+    public static List<Integer> createFilledList(Supplier<Integer> supplier, int n) {
+        return Stream.generate(supplier)
+                .limit(n*n)
+                .collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    public static Function<Integer, Supplier<Integer>> setNum = tag -> () -> tag;
+
+
 //    public static <T> List<T> partlyCopyList(List<T> list, List<T> ind) {
 //        List<T> newList = new ArrayList<>(list);
 //        for (int i = 0; i < ind; i++) {
@@ -30,4 +44,9 @@ public class Utils {
         newList.remove(index);
         return newList;
     }
+}
+
+@FunctionalInterface
+interface Function3Arity<A, B, C, R>  {
+    R apply(A a, B b, C c);
 }
