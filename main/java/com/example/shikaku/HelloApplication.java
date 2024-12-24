@@ -117,7 +117,8 @@ public class HelloApplication extends Application {
                 playRoot.setAlignment(Pos.CENTER);
                 HBox playHRoot = new HBox(playRoot);
                 playHRoot.setAlignment(Pos.CENTER);
-                GameView gameView = new GameView(n);
+                Field field = new Field(n);
+                GameView gameView = new GameView(n, field);
                 playRoot.getChildren().add(gameView.getPlayPane());
                 playRoot.getChildren().add(solveGenerated);
                 playRoot.getChildren().add(checkInput);
@@ -135,9 +136,9 @@ public class HelloApplication extends Application {
                 stage.setScene(playScene);
                 stage.show();
 
-                solveGenerated.setOnAction(event2 -> solveGeneratedAction(gameView,stage,o));
+                solveGenerated.setOnAction(event2 -> solveGeneratedAction(field,stage,o));
 
-                checkInput.setOnAction(checkEvent -> checkInputAction(gameView, stage, o));
+                checkInput.setOnAction(checkEvent -> checkInputAction(field, stage, o));
 
             } catch (NumberFormatException e) {
                 //mainLabel.setText("You can enter only numbers!");
@@ -154,7 +155,8 @@ public class HelloApplication extends Application {
             //matrix.createMatrix();
                 DLX.solve(DLX.buildSparseMatrix(matrix.createMatrix(), cols), 0, o);
                 HBox root2 = new HBox();
-                Node DLXResultPane = boardView.getLabelPane(DLX.getResult(), boardView.getBoard());
+                Field field = new Field(DLX.getResult(), boardView.getBoard());
+                Node DLXResultPane = boardView.getLabelPane(field);
                 root2.getChildren().addAll(DLXResultPane);
 
                 root2.setSpacing(50);
@@ -184,15 +186,15 @@ public class HelloApplication extends Application {
 
     }
 
-    private void solveGeneratedAction(GameView gameView, Stage stage, List<CellNode> o) {
+    private void solveGeneratedAction(Field field, Stage stage, List<CellNode> o) {
         //Board board = new Board(gameView.gen.field,n,n);
         //board.createMatrix();
         //DLX.solve(DLX.buildSparseMatrix(board.createMatrix(), cols), 0, o);
-        DLX.solvePuzzle(gameView, n, cols, o);
+        field.setResult(DLX.solvePuzzle(field, n, cols, o));
 
         HBox root2 = new HBox();
         boardView = new BoardView(n, n);
-        Node DLXResultPane = boardView.getLabelPane(DLX.getResult(),gameView.gen.field);
+        Node DLXResultPane = boardView.getLabelPane(field);
         root2.getChildren().addAll( DLXResultPane);
 
         root2.setSpacing(50);
@@ -245,8 +247,8 @@ public class HelloApplication extends Application {
         }
     }
 
-    private void checkInputAction(GameView gameView, Stage stage, List<CellNode> o) {
-        if (Generation.isSolved(gameView.inputRectangles)) {
+    private void checkInputAction(Field field, Stage stage, List<CellNode> o) {
+        if (Field.isSolved(field.inputRectangles)) {
             Label win = new Label("You won!");
             win.setFont(reallyBigFont);
             VBox winBox = new VBox(win);
@@ -257,12 +259,9 @@ public class HelloApplication extends Application {
             stage.show();
         }
         else {
-            //наверняка дублирование с solveGenerated
-            Matrix matrix = new Matrix(gameView.gen.field,n,n);
-            //board.createMatrix();
-            DLX.solve(DLX.buildSparseMatrix(matrix.createMatrix(), cols), 0, o);
+            field.setResult(DLX.solvePuzzle(field, n, cols, o));
             boardView = new BoardView(n, n);
-            Node DLXResultPane = boardView.getLabelPane(DLX.getResult(),gameView.gen.field);
+            Node DLXResultPane = boardView.getLabelPane(field);
 
             Label lose = new Label("You lose!");
             lose.setFont(reallyBigFont);

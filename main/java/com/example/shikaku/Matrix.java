@@ -27,7 +27,7 @@ public class Matrix {
         return matr;
     }
 
-    private TreeSet<Integer> getDevisors(int num){
+    private TreeSet<Integer> getDevisors(final int num){
         TreeSet<Integer> devisors = new TreeSet<>();
         for( int i=1; i< Math.sqrt(num); i++){
             if (num % i == 0)

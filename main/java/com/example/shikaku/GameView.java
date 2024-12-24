@@ -26,15 +26,13 @@ public class GameView {
     Double chosenAreaYMax = -1.0;
     Double chosenAreaYMin = Double.MAX_VALUE;
 
-    //List<List<Integer>> inputMatr = new ArrayList<>();
-    List<RectangleOnField> inputRectangles = new ArrayList<>();
+
 
     Integer counterRect =0;
 
     ObservableList<Node> list;
     List<GameCell> gameCellsList = new ArrayList<>();
     int n;
-    Generation gen;
     public static final Color[] colors = new Color[]{Color.ROYALBLUE, Color.YELLOW, Color.AQUAMARINE, Color.LIGHTCORAL,
             Color.FUCHSIA, Color.RED, Color.FORESTGREEN, Color.BISQUE, Color.GOLD, Color.BROWN,
             Color.CRIMSON, Color.YELLOWGREEN, Color.DIMGREY, Color.PERU, Color.SADDLEBROWN, Color.PLUM,
@@ -42,14 +40,13 @@ public class GameView {
     };
     int colorsCounter=0;
 
-    GameView(int n){
+    GameView(int n, final Field field){
         this.n = n;
-        gen = new Generation(n);
         pane.setPrefColumns(n);
         pane.setPrefTileWidth(CELL_WIDTH); //(400-20)/n
         pane.setPrefTileHeight(CELL_WIDTH);
         pane.setMaxWidth(Region.USE_PREF_SIZE);
-        setPaneElements();
+        setPaneElements(field);
     }
 
     void mouse(MouseDragEvent event){
@@ -75,7 +72,6 @@ public class GameView {
                 }
             }
         }
-        inputRectangles.add(r);
         colorsCounter++;
         if(colorsCounter==colors.length){
             colorsCounter =0;
@@ -105,82 +101,91 @@ public class GameView {
         }
     }
 
-    private void mouseDraggedEvent(Event event) {
+    private void mouseDraggedEvent(Event event, Field field) {
         {
             event.consume();
-            RectangleOnField r = new RectangleOnField();
-            List<Integer> inputRect = createFilledList(setNum.apply(0),n);;
-            r.inputRectangle = inputRect;
-            int num =0;
-            for(GameCell rectCell: gameCellsList){
-                double rectX = rectCell.rectangle.getX();
-                double rectY = rectCell.rectangle.getY();
-                if(rectX >= chosenAreaXMin && rectX <= chosenAreaXMax
-                        && rectY >= chosenAreaYMin && rectY <= chosenAreaYMax){
-                    rectCell.rectangle.setFill(colors[colorsCounter]);
-                    inputRect.set((int)(rectY*n+rectX), 1);
-                    String rectTextStr = rectCell.text.getText();
-                    if(!Objects.equals(rectTextStr, "")
-                    ){
-                        int sdh = Integer.parseInt(rectCell.text.getText());
-                        r.numCounter++;
-                        num = sdh;
-                        r.num=num;
-                    }
-                }
-            }
-            inputRectangles.add(r);
-            colorsCounter++;
-            if(colorsCounter==colors.length){
-                colorsCounter =0;
-            }
-            //inputMatr.add(inputRect);
-            chosenAreaXMax = -1.0;
-            chosenAreaXMin = Double.MAX_VALUE;
-            chosenAreaYMax = -1.0;
-            chosenAreaYMin = Double.MAX_VALUE;
+           savePersonsMove(field);
         }
     }
 
-    private void mouseReleasedEvent(Event event) {
+    private void savePersonsMove(Field field) {
+        List<Integer> inputRect = createFilledList(setNum.apply(0),n);;
+        int numCounter = 0, num = 0;
+        for(GameCell rectCell: gameCellsList){
+            double rectX = rectCell.rectangle.getX();
+            double rectY = rectCell.rectangle.getY();
+            if(isCellInArea(rectX, rectY, chosenAreaXMin, chosenAreaXMax, chosenAreaYMin, chosenAreaYMax)){
+                rectCell.rectangle.setFill(colors[colorsCounter]);
+                inputRect.set((int)(rectY*n+rectX), 1);
+                int[] res =countHowMuchNumers(rectCell, numCounter, num);
+                numCounter = res[0];
+                num = res[1];
+            }
+        }
+        field = field.addInputRectangleToField(field, inputRect, numCounter, num);
+        colorsCounter = newColorsCounter(colorsCounter);
+        chosenAreaXMax = -1.0;
+        chosenAreaXMin = Double.MAX_VALUE;
+        chosenAreaYMax = -1.0;
+        chosenAreaYMin = Double.MAX_VALUE;
+    }
+
+    private boolean isCellInArea(double rectX, double rectY, double chosenAreaXMin, double chosenAreaXMax,
+                                 double chosenAreaYMin, double chosenAreaYMax) {
+        return rectX >= chosenAreaXMin && rectX <= chosenAreaXMax
+                && rectY >= chosenAreaYMin && rectY <= chosenAreaYMax;
+    }
+
+    private int[] countHowMuchNumers(GameCell rectCell, int numCounter, int num) {
+        String rectTextStr = rectCell.text.getText();
+        if(!Objects.equals(rectTextStr, "")
+        ){
+            int numCounterNew = numCounter;
+            int numNew = num;
+            int[] res = numberPassed(rectCell, numCounterNew, numNew);
+            numCounterNew = res[0];
+            numNew = res[1];
+            return new int[]{numCounterNew, numNew};
+        }
+        return new int[]{numCounter, num};
+    }
+
+    private int newColorsCounter( int colorsCounter){
+        int c = colorsCounter;
+        c++;
+        if(c==colors.length){
+            c =0;
+        }
+        return c;
+    }
+
+    private int[] numberPassed(GameCell rectCell, int numCounter, int num) {
+        int numCounterNew = numCounter;
+        int numNew = num;
+        int sdh = Integer.parseInt(rectCell.text.getText());
+        numCounterNew++;
+        numNew = sdh;
+        return new int[]{numCounterNew, numNew};
+    }
+
+
+    private void mouseReleasedEvent(Event event, Field field) {
         {
             event.consume();
-            RectangleOnField r = new RectangleOnField();
-            List<Integer> inputRect = createFilledList(setNum.apply(0),n);;
-            r.inputRectangle = inputRect;
-            int num =0;
-            for(GameCell rectCell: gameCellsList){
-                double rectX = rectCell.rectangle.getX();
-                double rectY = rectCell.rectangle.getY();
-                if(rectX >= chosenAreaXMin && rectX <= chosenAreaXMax
-                        && rectY >= chosenAreaYMin && rectY <= chosenAreaYMax){
-                    rectCell.rectangle.setFill(colors[colorsCounter]);
-                    inputRect.set((int)(rectY*n+rectX), 1);
-                    String rectTextStr = rectCell.text.getText();
-                    if(!Objects.equals(rectTextStr, "")
-                    ){
-                        int sdh = Integer.parseInt(rectCell.text.getText());
-                        r.numCounter++;
-                        num = sdh;
-                        r.num=num;
-                    }
-                }
-            }
-            inputRectangles.add(r);
-            colorsCounter++;
-            if(colorsCounter==colors.length){
-                colorsCounter =0;
-            }
-            chosenAreaXMax = -1.0;
-            chosenAreaXMin = Double.MAX_VALUE;
-            chosenAreaYMax = -1.0;
-            chosenAreaYMin = Double.MAX_VALUE;
+            savePersonsMove(field);
         }
     }
 
-    void setPaneElements() {
-        gen.generateField();
-        List<List<Integer>> generatedNumbers = gen.getField();
+    private int changeColor(int colorsCounter) {
+        colorsCounter++;
+        if(colorsCounter==colors.length){
+            colorsCounter =0;
+        }
+        return colorsCounter;
+    }
+
+    void setPaneElements(final Field field) {
+        List<List<Integer>> generatedNumbers = field.getFieldNumbers();
         list = pane.getChildren();
         for (int i = 0; i < n ; ++i) {
             for(int j=0; j<n; j++) {
@@ -193,9 +198,9 @@ public class GameView {
                 cell.setOnMouseDragEntered(
                         event -> mouseEnteredEvent(event, cell, gameCell));
                 cell.setOnMouseDragReleased(
-                        this::mouseDraggedEvent
+                        event -> mouseDraggedEvent(event, field)
                 );
-                gameCell.text.setOnMouseDragReleased(this::mouseReleasedEvent);
+                gameCell.text.setOnMouseDragReleased(event ->  mouseReleasedEvent(event, field));
                 cell.setWidth(CELL_WIDTH);
                 cell.setHeight(CELL_WIDTH);
                 list.add(gameCell.stackPane);

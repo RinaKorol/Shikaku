@@ -12,71 +12,13 @@ import static com.example.shikaku.Utils.setNum;
 public class Generation {
     public static int n = 0;
     int iter = 0;
-    List<RectangleOnField> fieldMatr = new ArrayList<>();
-
-    List<List<Integer>> field = new ArrayList<>();
 
     Generation(int n) {
         this.n = n;
-        RectangleOnField first = new RectangleOnField();
-        first.inputRectangle = createFilledList(setNum.apply(1),n);
-        first.numCol = n;
-        first.numStr = n;
-        fieldMatr.add(first);
     }
 
-    public List<List<Integer>> getField() {
-        matrToField();
-        return field;
-    }
 
-    //действие
-    private void matrToField() {
-        Random rand = new Random();
-        int space = 0;
-        int place = 0;
-        int counter = -1;
 
-        for (int i = 0; i < n; i++) {      //создали поле нужного размера, заполненное нулями
-            List<Integer> tmp = new ArrayList<>();
-            for (int j = 0; j < n; j++) {
-                tmp.add(0);
-            }
-            field.add(tmp);
-        }
-
-        //можно вынести в ф-ю изменяет глобальную переменную
-        for (RectangleOnField rectangleOnField : fieldMatr) {
-            space = rectangleOnField.numCol * rectangleOnField.numStr;
-            place = rand.nextInt(space);
-            for (int j = 0; j < rectangleOnField.inputRectangle.size(); j++) {
-                if (rectangleOnField.inputRectangle.get(j) == 1)
-                    counter++;
-                if (counter == place) {
-                    field.get(j / n).set(j % n, space);
-                    break;
-                }
-            }
-            counter = -1;
-        }
-    }
-
-    private void printFields() {
-        System.out.println("Generation field:");
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < n; j++) {
-                System.out.print(field.get(i).get(j) + " ");
-            }
-            System.out.println();
-        }
-        System.out.println("Generation fieldMatr");
-        for (RectangleOnField rectangleOnField : fieldMatr) {
-            for (int j = 0; j < rectangleOnField.inputRectangle.size(); j++) {
-                System.out.print(rectangleOnField.inputRectangle.get(j) + " ");
-            }
-            System.out.println();
-        }
-    }
 
     //действие
     private RectangleOnField[] devisionCols(RectangleOnField currRec, int iter) {
@@ -214,85 +156,36 @@ public class Generation {
     }
 
 
-
-    //действие - изменяется глобальная переменная fieldmatr
-    //можно вынести часть со строки 170-180 и слить с делением cols
-    private void divideStrings(RectangleOnField currRec) {
-        if (currRec.numStr > 1) {
-            RectangleOnField[] res = devisionStr(currRec);
-            fieldMatr.remove(currRec);
-            fieldMatr.add(res[0]);
-            fieldMatr.add(res[1]);
-        }
-    }
-
     //изменяется глобальная переменная iter  fieldMatr
-    private void divideField(RectangleOnField currRec) {
-        Random rand = new Random();
-        while (iter < n * n / 2 +1) {   //делю пока не достигнуто нужное количество прямоугольников
+    private List<RectangleOnField> divideField(RectangleOnField currRec, Random rand, List<RectangleOnField> fieldMatr) {
+        List<RectangleOnField> fieldMatrCopy = new ArrayList<>(List.copyOf(fieldMatr));
             if (currRec.numStr * currRec.numCol > 3) {
                 int colOrStr = rand.nextInt(2);//0 столбец, 1 строка
-                fieldMatr = divide(currRec, colOrStr, fieldMatr, iter);
+                fieldMatrCopy = divide(currRec, colOrStr, fieldMatrCopy, iter);
             }
             iter++;
-            generateField();
-        }
+            return fieldMatrCopy;
     }
 
     //действие
-    public void generateField() {
+    public List<RectangleOnField> generateField() {
+        List<RectangleOnField> fieldMatr = new ArrayList<>();
+        RectangleOnField first = new RectangleOnField();
+        first.inputRectangle = createFilledList(setNum.apply(1),n);
+        first.numCol = n;
+        first.numStr = n;
+        fieldMatr.add(first);
+
+        while (iter < n * n / 2 +1) {
         Random rand = new Random();
         int chosenStr = rand.nextInt(fieldMatr.size());
         if (iter < 3)   //первые 3 итерации делится самый большой прямоугольник
             chosenStr = 0;
 
         RectangleOnField currRec = fieldMatr.get(chosenStr);
-
-        divideField(currRec);
-    }
-
-    //подсчет единиц, //действие, тк меняется аргумент, но можно сделать вычислением
-    //в идеале сделать ones через новую но не разобралась как вернуть пару значений сразу
-    private static int countOnes(RectangleOnField rect) {
-        return (int) rect.inputRectangle.stream().filter(el -> el==1).count();
-    }
-
-    private static int[] fillOnesArray(List<RectangleOnField> listRectangles, int size){
-        int[] ones = new int[size];
-        for (RectangleOnField rect : listRectangles) { //map?
-            for (int i = 0; i < size; ++i) {
-                if (rect.inputRectangle.get(i) == 1) { //filter reduse
-                    ones[i]++;
-                }
-            }
+            fieldMatr = divideField(currRec, rand, fieldMatr);
         }
-        return ones;
-    }
-
-    //проверка каждого прямоугольника
-    //добавить копирование isSolved
-    //действие, тк меняется аргумент, но можно сделать вычислением
-    private static boolean checkRectangles(List<RectangleOnField> listRectangles) {
-        return listRectangles.stream().allMatch(el -> el.num == countOnes(el));
-    }
-
-    //добавить копирование isSolved
-    //действие, тк меняется аргумент, но можно сделать вычислением
-    private static boolean isRectChosenOnce(List<RectangleOnField> listRectangles) {
-        return listRectangles.stream().allMatch(el -> el.numCounter == 1);
-    }
-
-    private static boolean checkAllOnes(int[] ones, int size) {
-        return Arrays.stream(ones).allMatch(el -> el == 1);
-    }
-
-    public static boolean isSolved(List<RectangleOnField> r) {
-        if (!r.isEmpty()) {
-            int[] ones = fillOnesArray(r, r.get(0).inputRectangle.size());
-            //new int[r.get(0).inputRectangle.size()];
-              return isRectChosenOnce(r) && checkRectangles(r) && checkAllOnes(ones,r.get(0).inputRectangle.size());
-        }
-        return false;
+        return fieldMatr;
     }
 }
 
@@ -303,6 +196,15 @@ class RectangleOnField implements Cloneable {
     List<Integer> inputRectangle = new ArrayList<>();
     int numCounter = 0;
     int num = 0;
+
+    public RectangleOnField() {
+    }
+
+    public RectangleOnField(List<Integer> inputRectangle, int numCounter, int num) {
+        this.inputRectangle = inputRectangle;
+        this.numCounter = numCounter;
+        this.num = num;
+    }
 
     //вычисление
     public static RectangleOnField createNewRect(int numStr, int numCol) {

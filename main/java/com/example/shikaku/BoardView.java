@@ -43,27 +43,50 @@ public class BoardView {
         }
     }
 
-    Node getLabelPane(List<List<Integer>> result, List<List<Integer>> numbersField){
+    Node getLabelPane(Field field){
+        pane.setPadding(new Insets(3));
+        return createLabelPane(field);
+    }
+
+    TilePane createLabelPane(Field field){
         TilePane labelPane = new TilePane();
         labelPane.setPrefColumns(n);
-        pane.setPadding(new Insets(3));
         labelPane.setPrefTileWidth(CELL_WIDTH); //(400-20)/n
         labelPane.setPrefTileHeight(CELL_WIDTH);
         labelPane.setMaxWidth(Region.USE_PREF_SIZE);
-        createLabelPane(result, labelPane, numbersField);
+
+        List<Node> listNodes = labelPane.getChildren();
+        listNodes.addAll(createChildren(field));
         return labelPane;
     }
 
-    //теоретически тоже можно сделать вычислением если возсращать результат работы listNodes
-    void createLabelPane(List<List<Integer>> result, TilePane labelPane, List<List<Integer>> numbersField){
-        ObservableList<Node> listNodes;
-        listNodes = labelPane.getChildren();
+    private List<Node> paintLabels(final List<Node> listNodes, final List<List<Integer>> result) {
+        List<Node> listNodesCopy = List.copyOf(listNodes);
+        int i=0;
+        for(final List<Integer> row : result ){
+            int finalI = i;
+            row.forEach(el ->{
+                ((Label)listNodesCopy.get(el)).setBackground(getBackground(finalI));
+            });
+            i = changeColor(i);
+        }
+        return listNodesCopy;
+    }
+
+    private Background getBackground(final int finalI) {
+        return new Background
+                (new BackgroundFill(colors[finalI],
+                        CornerRadii.EMPTY, Insets.EMPTY));
+    }
+
+    private List<Node> createChildren(Field field) {
+        List<Node> listNodes = new ArrayList<>();
         for (int i = 0; i < n * m; ++i) {
-            Label view = new Label();
+            Label view = new Label();//
             view.setMinWidth(30);
             view.setMinHeight(30);
-            if (numbersField.get(i/n).get(i%n) != 0){
-                int numInt = numbersField.get(i/n).get(i%n);
+            int numInt = field.fieldNumbers.get(i/n).get(i%n);
+            if (numInt != 0){
                 String numStr = Integer.toString(numInt);
                 view.setText(numStr);
                 view.setPadding(new Insets(0,0,0,9));
@@ -72,30 +95,14 @@ public class BoardView {
                 view.setText("");
             listNodes.add(view);
         }
-        paintLabels(result, listNodes);
+        return paintLabels(listNodes, field.result);
     }
 
-    //можно сделать вычислением, если сделать кпз на listNodes
-    void paintLabels(List<List<Integer>> result, ObservableList<Node> listNodes){
-        Color[] colors = new Color[]{Color.ROYALBLUE, Color.YELLOW, Color.AQUAMARINE, Color.LIGHTCORAL,
-                Color.FUCHSIA, Color.RED, Color.FORESTGREEN, Color.BISQUE, Color.GOLD, Color.BROWN,
-                Color.CRIMSON, Color.YELLOWGREEN, Color.DIMGREY, Color.PERU, Color.SADDLEBROWN, Color.PLUM,
-                Color.POWDERBLUE, Color.MEDIUMVIOLETRED, Color.DARKVIOLET, Color.LIGHTSLATEGRAY
-        };
-        int i=0;
-        for (final List<Integer> row : result) {
-            for (final Object label : row) {
-                if (i == colors.length) {
-                    i=0;
-                }
-                Color color = colors[i];
-                int c = (Integer) label;
-                ((Label)listNodes.get(c)).setBackground(new Background
-                        (new BackgroundFill(color,
-                                CornerRadii.EMPTY, Insets.EMPTY)));
-            }
-            i++;
+    private int changeColor(final int i) {
+        if (i == colors.length) {
+            return 0;
         }
+        return i+1;
     }
 
     //вычисление

@@ -84,9 +84,10 @@ public class DLX {
         return h;
     }
 
-    public static void solvePuzzle(GameView gameView, int n, Integer[] cols, List<CellNode> solvingList) {
-        Matrix matrix = new Matrix(gameView.gen.field,n,n);
+    public static List<List<Integer>> solvePuzzle(Field field, int n, Integer[] cols, List<CellNode> solvingList) {
+        Matrix matrix = new Matrix(field.getFieldNumbers(),n,n);
         DLX.solve(DLX.buildSparseMatrix(matrix.createMatrix(), cols), 0, solvingList);
+        return result;
     }
 
     //вычисление было бы если бы не глобальная переменная, но думаю если убрать её станет хуже
